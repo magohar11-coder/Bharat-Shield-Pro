@@ -4,24 +4,31 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Install Dependencies
+          node-version: 20
+
+      - name: Install All Tools
         run: |
           npm install
           npm install @capacitor/cli @capacitor/core @capacitor/android
-      - name: Sync Capacitor
+
+      - name: Prepare Android Project
         run: |
           npx cap add android
           npx cap copy android
-      - name: Build APK
+
+      - name: Build Debug APK
         run: |
           cd android
           ./gradlew assembleDebug
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
+
+      - name: Upload Finished APK
+        uses: actions/upload-artifact@v4
         with:
           name: Bharat-Shield-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
