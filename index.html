@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BHARAT SHIELD v1.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        .shield-active { border: 2px solid #ef4444; box-shadow: 0 0 20px #ef4444; }
+        .shield-idle { border: 2px solid #10b981; box-shadow: 0 0 20px #10b981; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-6">
+
+    <div id="statusContainer" class="shield-idle rounded-full p-12 mb-8 transition-all duration-500">
+        <i id="shieldIcon" class="fas fa-shield-halved text-6xl text-emerald-500"></i>
+    </div>
+
+    <h1 id="statusText" class="text-2xl font-black uppercase mb-2">System Secure</h1>
+    <p class="text-slate-500 text-sm text-center mb-10 italic">Phone ko table par rakhein aur 'ARM' karein. Hilne par alarm bajega.</p>
+
+    <div class="space-y-4 w-full max-w-xs">
+        <button id="armBtn" onclick="toggleShield()" class="w-full bg-emerald-600 hover:bg-emerald-700 py-4 rounded-xl font-bold transition-all shadow-lg">
+            ARM SHIELD (ACTIVE)
+        </button>
+        
+        <button id="stopBtn" onclick="stopAlarm()" class="hidden w-full bg-red-600 py-4 rounded-xl font-bold animate-bounce shadow-lg">
+            STOP ALARM
+        </button>
+    </div>
+
+    <audio id="siren" src="https://www.soundjay.com/buttons/beep-01a.mp3" loop></audio>
+
+    <script>
+        let isArmed = false;
+        let lastX, lastY, lastZ;
+        const siren = document.getElementById('siren');
+        const statusText = document.getElementById('statusText');
+        const shieldIcon = document.getElementById('shieldIcon');
+        const statusContainer = document.getElementById('statusContainer');
+
+        function toggleShield() {
+            if (!isArmed) {
+                // ARM karne se pehle 3 second ka wait taaki phone table par rakha ja sake
+                statusText.innerText = "Arming in 3s...";
+                setTimeout(() => {
+                    isArmed = true;
+                    statusText.innerText = "SHIELD ACTIVE";
+                    statusText.classList.add('text-emerald-500');
+                    shieldIcon.className = "fas fa-shield-virus text-6xl text-emerald-500";
+                    document.getElementById('armBtn').innerText = "SYSTEM ARMED";
+                    document.getElementById('armBtn').classList.replace('bg-emerald-600', 'bg-slate-800');
+                }, 3000);
+            }
+        }
+
+        window.addEventListener('devicemotion', (event) => {
+            if (!isArmed) return;
+
+            let acc = event.accelerationIncludingGravity;
+            let sensitivity = 2.0; // Isse kam-zyada kar sakte hain
+
+            if (lastX !== undefined) {
+                let deltaX = Math.abs(acc.x - lastX);
+                let deltaY = Math.abs(acc.y - lastY);
+                let deltaZ = Math.abs(acc.z - lastZ);
+
+                if (deltaX > sensitivity || deltaY > sensitivity || deltaZ > sensitivity) {
+                    triggerAlarm();
+                }
+            }
+
+            lastX = acc.x; lastY = acc.y; lastZ = acc.z;
+        });
+
+        function triggerAlarm() {
+            isArmed = false;
+            siren.play();
+            statusText.innerText = "THEFT DETECTED!";
+            statusText.className = "text-2xl font-black uppercase mb-2 text-red-500";
+            statusContainer.className = "shield-active rounded-full p-12 mb-8 animate-pulse";
+            shieldIcon.className = "fas fa-bell text-6xl text-red-500";
+            document.getElementById('armBtn').classList.add('hidden');
+            document.getElementById('stopBtn').classList.remove('hidden');
+        }
+
+        function stopAlarm() {
+            siren.pause();
+            siren.currentTime = 0;
+            location.reload(); // System reset
+        }
+    </script>
+</body>
+</html>
